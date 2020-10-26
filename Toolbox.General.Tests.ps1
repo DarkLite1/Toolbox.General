@@ -65,7 +65,7 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
                 $actual.userName | should -BeExactly $env:USERNAME
-            }
+            }  -Tag test
             It 'an array of strings to an array of strings with env variables' {
                 Function Test-Function {
                     Param (
@@ -77,7 +77,7 @@ Describe 'Get-DefaultParameterValuesHC' {
 
                 $actual.ComputerNames[0] | should -BeExactly $env:COMPUTERNAME
                 $actual.ComputerNames[1] | should -BeExactly 'PC2'
-            }
+            } 
         }
     }
 }  -Tag test

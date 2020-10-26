@@ -477,27 +477,27 @@ Function Get-DiskSpaceInfoHC {
 
 Function Get-DefaultParameterValuesHC {
     <#
-    .SYNOPSIS
-        Get the the default values for parameters set in a script or function
-    
-    .PARAMETER Path
-        Function name or path to the script file
+.SYNOPSIS
+    Get the the default values for parameters set in a script or function
 
-    .EXAMPLE
-        Get the default values for the parameters
+.PARAMETER Path
+    Function name or path to the script file
 
-        Function Test-Function {
-            Param (
-                [Parameter(Mandatory)]
-                [String]$PrinterName,
-                [Parameter(Mandatory)]
-                [String]$PrinterColor,
-                [String]$ScriptName = 'Get printers',
-                [String]$PaperSize = 'A4'
-            )
-        }
-        Get-DefaultParameterValuesHC -Path 'Test-Function'
-    #>
+.EXAMPLE
+    Get the default values for the parameters
+
+    Function Test-Function {
+        Param (
+            [Parameter(Mandatory)]
+            [String]$PrinterName,
+            [Parameter(Mandatory)]
+            [String]$PrinterColor,
+            [String]$ScriptName = 'Get printers',
+            [String]$PaperSize = 'A4'
+        )
+    }
+    Get-DefaultParameterValuesHC -Path 'Test-Function'
+#>
 
     [CmdletBinding()]
     [OutputType([hashtable])]
@@ -507,7 +507,7 @@ Function Get-DefaultParameterValuesHC {
     )
     try {
         $ast = (Get-Command $Path).ScriptBlock.Ast
-        
+
         $selectParams = @{
             Property = @{ 
                 Name       = 'Name'; 
@@ -516,16 +516,17 @@ Function Get-DefaultParameterValuesHC {
             @{ 
                 Name       = 'Value'; 
                 Expression = { 
-                    if ($_.DefaultValue.StaticType.BaseType.Name -eq 'Array') {
-                        $_.DefaultValue.SubExpression.Extent.Text -split ',' | ForEach-Object { $_.trim() -replace "`"|'"  }
+                    if ($_.DefaultValue.StaticType.IsArray) {
+                        $_.DefaultValue.SubExpression.Statements.PipelineElements.Expression.Elements.Extent.Text
                     }
                     else {
-                        $_.DefaultValue.Extent.Text -replace "`"|'" 
+                        if ($_.DefaultValue.Value) {$_.DefaultValue.Value}
+                        else {$_.DefaultValue.Extent.Text}
                     }
                 }
             }
         }
-        
+    
         $result = @{ }
 
         $defaultValueParameters = @($ast.FindAll( { 
@@ -533,10 +534,10 @@ Function Get-DefaultParameterValuesHC {
                 , $true) | 
             Where-Object { $_.DefaultValue } | 
             Select-Object @selectParams)
-            
+        
         foreach ($d in $defaultValueParameters) {
             $result[$d.Name] = foreach ($value in $d.Value) {
-                $ExecutionContext.InvokeCommand.ExpandString($value)
+                $ExecutionContext.InvokeCommand.ExpandString($value) -replace "^`"|`"$|'$|^'" 
             }
         }
         $result
