@@ -76,6 +76,19 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual.Keys | ForEach-Object { 
                     $actual[$_] | Should -Be $expected[$_] }
             }
+            It 'there are no default values' {
+                Function Test-Function {
+                    Param (
+                        [Parameter(Mandatory)]
+                        [String]$PrinterName = 'NotValidName',
+                        [String]$PaperSize
+                    )
+                }
+    
+                $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
+    
+                $actual | Should -BeNullOrEmpty
+            }
         }
         Context 'should convert' {
             It 'an env variable to a string' {
@@ -88,7 +101,7 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
                 $actual.userName | Should -BeExactly $env:USERNAME
-            }  -Tag test
+            }
             It 'an array of strings to an array of strings with env variables' {
                 Function Test-Function {
                     Param (
@@ -101,6 +114,17 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual.ComputerNames[0] | Should -BeExactly $env:COMPUTERNAME
                 $actual.ComputerNames[1] | Should -BeExactly 'PC2'
             } 
+            It 'a hashtable to hashtable' {
+                Function Test-Function {
+                    Param (
+                        [HashTable]$Settings = @{ Duplex = 'Yes'}
+                    )
+                }
+
+                $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
+
+                $actual.Settings | Should -BeOfType [HashTable]
+            } -Skip
         }
     }
 }
@@ -227,3 +251,7 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
         } | Should -BeExactly 'Time'
     }
 }
+
+<# 
+
+Invoke-Pester 'C:\Program Files\WindowsPowerShell\Modules\Toolbox.General\Toolbox.General.Tests.ps1' -Output detailed -TagFilter test #>

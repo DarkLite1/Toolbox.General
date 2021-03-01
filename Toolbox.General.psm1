@@ -548,7 +548,8 @@ Function Get-DefaultParameterValuesHC {
         
         foreach ($d in $defaultValueParameters) {
             $result[$d.Name] = foreach ($value in $d.Value) {
-                $ExecutionContext.InvokeCommand.ExpandString($value) -replace "^`"|`"$|'$|^'" 
+                $ExecutionContext.InvokeCommand.ExpandString($value) -replace 
+                "^`"|`"$|'$|^'" 
             }
         }
         $result
