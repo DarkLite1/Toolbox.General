@@ -124,9 +124,10 @@ Function Copy-ObjectHC {
         Make a deep copy of an object.
 
     .DESCRIPTION
-        In PowerShell, when you copy an object (array, hashtable, ..), there's always a link with the original.
-        So if you change a property in the new object it will also be changed in the original one. To avoid this
-        from happening, a deep copy with .NET is required.
+        In PowerShell, when you copy an object (array, hashtable, ..), there's 
+        always a link with the original. So if you change a property in the new 
+        object it will also be changed in the original one. To avoid this from 
+        happening, a deep copy with .NET is required.
 
     .PARAMETER Name
         Name of the object we need to copy.
@@ -269,7 +270,8 @@ Function ConvertFrom-RobocopyExitCodeHC {
              a usage error or an error due to insufficient access privileges on 
              the source or destination directories.
         0×08 8 Some files or directories could not be copied (copy errors   
-             occurred and the retry limit was exceeded). Check these errors further.
+             occurred and the retry limit was exceeded). Check these errors 
+             further.
         0×04 4 Some Mismatched files or directories were detected. Examine the 
              output log. Housekeeping is probably necessary.
         0×02 2 Some Extra files or directories were detected. Examine the 
@@ -298,7 +300,8 @@ Function ConvertFrom-RobocopyExitCodeHC {
             files were present.
         8	Several files did not copy.
         
-        * Note Any value greater than 8 indicates that there was at least one failure during the copy operation.
+        * Note Any value greater than 8 indicates that there was at least one 
+        failure during the copy operation.
         #>
 
     Param (
@@ -521,8 +524,8 @@ Function Get-DefaultParameterValuesHC {
                         $_.DefaultValue.SubExpression.Statements.PipelineElements.Expression.Elements.Extent.Text
                     }
                     else {
-                        if ($_.DefaultValue.Value) {$_.DefaultValue.Value}
-                        else {$_.DefaultValue.Extent.Text}
+                        if ($_.DefaultValue.Value) { $_.DefaultValue.Value }
+                        else { $_.DefaultValue.Extent.Text }
                     }
                 }
             }
@@ -530,15 +533,16 @@ Function Get-DefaultParameterValuesHC {
     
         $result = @{ }
 
-        $defaultValueParameters = @($ast.FindAll( { 
-                    $args[0] -is [System.Management.Automation.Language.ParameterAst] }
-                , $true) | 
+        $defaultValueParameters = @($ast.FindAll( {
+                    $args[0] -is 
+                    [System.Management.Automation.Language.ParameterAst] 
+                } , $true) | 
             Where-Object { 
                 ($_.DefaultValue) -and
                 (-not ($_.Attributes | 
-                Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
-                ForEach-Object -MemberName NamedArguments | 
-                Where-Object { $_.ArgumentName -eq 'Mandatory' }))
+                        Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
+                        ForEach-Object -MemberName NamedArguments | 
+                        Where-Object { $_.ArgumentName -eq 'Mandatory' }))
             } | 
             Select-Object @selectParams)
         
@@ -560,7 +564,8 @@ Function Install-RemoteAppHC {
         Install software on a remote machine
 
     .DESCRIPTION
-        Install software on a remote machine and copy the install files from SCCM to the C:\Cabs folder
+        Install software on a remote machine and copy the install files from 
+        SCCM to the C:\Cabs folder
 #>
     [CmdletBinding()]
     Param (
@@ -620,19 +625,24 @@ Function Remove-EmptyParamsHC {
 Function Remove-InvalidFileNameCharsHC {
     <#
     .SYNOPSIS
-        Removes characters from a string that are not valid in Windows file names.
+        Removes characters from a string that are not valid in Windows file 
+        names.
 
     .DESCRIPTION
-        Remove-InvalidFileNameCharsHC accepts a string and removes characters that are invalid in Windows file names.
+        Remove-InvalidFileNameCharsHC accepts a string and removes characters 
+        that are invalid in Windows file names.
 
     .PARAMETER Name
         Specifies the file name to strip of invalid characters.
 
     .PARAMETER IncludeSpace
-        The IncludeSpace parameter will include the space character (U+0032) in the removal process.
+        The IncludeSpace parameter will include the space character (U+0032) in 
+        the removal process.
 
     .EXAMPLE
-        'Clôture Yess 06/2015 - afsluit Yess 06/2015 - Closure Yess 06/2015' | Remove-InvalidFileNameCharsHC
+        'Clôture Yess 06/2015 - afsluit Yess 06/2015 - Closure Yess 06/2015' | 
+        Remove-InvalidFileNameCharsHC
+
         Clôture Yess 062015 - afsluit Yess 062015 - Closure Yess 062015
 #>
 
@@ -658,8 +668,9 @@ Function Remove-PowerShellWildcardCharsHC {
         Removes PowerShell wildcard characters from a string
 
     .DESCRIPTION
-        Removes PowerShell wildcard characters from a string. This can be useful when wildcards
-        are not accepted by other CmdLets like 'Send-MailMessage -Attachment'.
+        Removes PowerShell wildcard characters from a string. This can be 
+        useful when wildcards are not accepted by other CmdLets like 
+        'Send-MailMessage -Attachment'.
 
     .PARAMETER Name
         Specifies the string where the wildcard characters will be removed from.
@@ -765,7 +776,9 @@ Function Test-ParameterInPositionAndMandatoryHC {
             [Int]`$Number
         )" | Out-File TestScript.ps1
 
-        Test-ParameterInPositionAndMandatoryHC -Collection ((Get-Command ".\TestScript.ps1").Parameters) -Requirement @{
+        Test-ParameterInPositionAndMandatoryHC -Collection (
+            (Get-Command ".\TestScript.ps1").Parameters
+        ) -Requirement @{
             1 = 'ScriptName'
             2 = 'Number'
         }
