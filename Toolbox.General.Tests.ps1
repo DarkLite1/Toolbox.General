@@ -227,7 +227,3 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
         } | Should -BeExactly 'Time'
     }
 }
-
-<# 
-
-Invoke-Pester 'C:\Program Files\WindowsPowerShell\Modules\Toolbox.General\Toolbox.General.Tests.ps1' -output detailed -tag test #>
