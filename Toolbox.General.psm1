@@ -14,7 +14,7 @@
             $ImportFile = $env:TEMP + '\test.txt'
 
 @"
-MailTo: Brecht.Gijbels@heidelbergcement.com
+MailTo: bob@contoso.com
 
 # Other stuff
 
@@ -24,12 +24,12 @@ MailTo: Brecht.Gijbels@heidelbergcement.com
 # Other stuff
         # Other stuff
         No # comment
-GITOU: OU=GIT,DC=grouphc,DC=net
+GITOU: OU=GIT,DC=contoso,DC=net
 QuotaGroupName: BEL ATT Quota home
 NoOCSGroupName: BEL ATT User No OCS
 InactiveDays: 40
-# OU=BEL,OU=EU,DC=grouphc,DC=net
-OU=BEL,OU=EU,DC=grouphc,DC=net
+# OU=BEL,OU=EU,DC=contoso,DC=net
+OU=BEL,OU=EU,DC=contoso,DC=net
 
 
 
@@ -45,23 +45,17 @@ OU=BEL,OU=EU,DC=grouphc,DC=net
 Get-Content $ImportFile
 
             The result will be:
-            MailTo: Brecht.Gijbels@heidelbergcement.com
+            MailTo: bob@contoso.com
             No # comment
-            GITOU: OU=GIT,DC=grouphc,DC=net
+            GITOU: OU=GIT,DC=contoso,DC=net
             QuotaGroupName: BEL ATT Quota home
             NoOCSGroupName: BEL ATT User No OCS
             InactiveDays: 40
-            OU=BEL,OU=EU,DC=grouphc,DC=net
+            OU=BEL,OU=EU,DC=contoso,DC=net
             My stuff # that is ok
+#>
 
-        .NOTES
-            CHANGELOG
-            2016/02/22 Filter born
-            2018/01/11 Use a regex to better handle whitespaces
-
-            AUTHOR Brecht.Gijbels@heidelbergcement.com #>
-
-    if ($_ -notmatch '^\s*#|^\s*$') {
+    if ($_ -notMatch '^\s*#|^\s*$') {
         $_.Trim()
     }
 }
@@ -72,18 +66,16 @@ Function Add-FunctionHC {
         Load the module of a function when it's not loaded yet.
 
     .DESCRIPTION
-        Load the module of a function, only when it's not loaded yet. This can be usefull when a function needs to be known in the local session before it can be used in a remote session by 'Invoke-Command'.
+        Load the module of a function, only when it's not loaded yet. This can 
+        be useful when a function needs to be known in the local session before 
+        it can be used in a remote session by 'Invoke-Command'.
 
     .EXAMPLE
         Add-FunctionHC -Name 'Copy-FilesHC'
-        Loads the module 'Toolbox.General' where the function 'Copy-FilesHC' is available in. It does this only when the module has not been loaded yet.
 
-    .NOTES
-        CHANGELOG
-        2015/01/30 Function born
-
-        AUTHOR
-        Brecht.Gijbels@heidelbergcement.com #>
+        Loads the module 'Toolbox.General' where the function 'Copy-FilesHC' is 
+        available in. It does this only when the module has not been loaded yet.
+#>
 
     [CmdletBinding()]
     Param(
@@ -108,17 +100,12 @@ Function Add-FunctionHC {
 Function ConvertTo-ArrayHC {
     <#
     .SYNOPSIS
-        Convert differnt types of collections (valuecollection, collection`1, ...)
-        to an array.
+        Convert different types of collections (valueCollection, collection`1, 
+        ...) to an array.
 
     .DESCRIPTION
         This function is convenient for Pester testing.
-
-    .NOTES
-	    CHANGELOG
-	    2018/06/28 Function born
-
-	    AUTHOR Brecht.Gijbels@heidelbergcement.com #>
+s#>
 
     Begin {
         $output = @();
@@ -139,17 +126,18 @@ Function Copy-ObjectHC {
     .DESCRIPTION
         In PowerShell, when you copy an object (array, hashtable, ..), there's always a link with the original.
         So if you change a property in the new object it will also be changed in the original one. To avoid this
-        from happening, a deep copy with .NET is requiered.
+        from happening, a deep copy with .NET is required.
 
     .PARAMETER Name
         Name of the object we need to copy.
 
     .EXAMPLE
         The $NewArray object contains a full copy of the $OriginalArray
-        $NewArray = Copy-ObjectHC -Original $OrignalArray
+        $NewArray = Copy-ObjectHC -Original $OriginalArray
 
     .EXAMPLE
-        Make a deep copy of a hasthable
+        Make a deep copy of a hashtable
+
         $OriginalHash = @{
             'SrvBatch' = 'FullControl'
         }
@@ -161,13 +149,7 @@ Function Copy-ObjectHC {
 
         Write-Host 'Original hash:' -ForegroundColor Yellow
         $OriginalHash
-
-    .NOTES
-        CHANGELOG
-        2014/04/17 Function born
-
-        AUTHOR
-        Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     [CmdletBinding()]
     Param (
@@ -269,43 +251,55 @@ Function Merge-ObjectsHC {
 Function ConvertFrom-RobocopyExitCodeHC {
     <#
     .SYNOPSIS
-            Convert exit codes of Robocopy.exe.
+        Convert exit codes of Robocopy.exe.
 
     .DESCRIPTION
         Convert exit codes of Robocopy.exe to readable formats.
 
     .EXAMPLE
-        Robocopy.exe $Source $Target $RobocopySwitches; ConvertFrom-RobocopyExitCodeHC -ExitCode $LASTEXITCODE
+        Robocopy.exe $Source $Target $RobocopySwitches
+        ConvertFrom-RobocopyExitCodeHC -ExitCode $LASTEXITCODE
         'COPY'
 
     .NOTES
         $LASTEXITCODE of Robocopy.exe
 
         Hex Bit Value Decimal Value Meaning If Set
-        0×10 16 Serious error. Robocopy did not copy any files. This is either a usage error or an error due to insufficient access privileges on the source or destination directories.
-        0×08 8 Some files or directories could not be copied (copy errors occurred and the retry limit was exceeded). Check these errors further.
-        0×04 4 Some Mismatched files or directories were detected. Examine the output log. Housekeeping is probably necessary.
-        0×02 2 Some Extra files or directories were detected. Examine the output log. Some housekeeping may be needed.
-        0×01 1 One or more files were copied successfully (that is, new files have arrived).
-        0×00 0 No errors occurred, and no copying was done. The source and destination directory trees are completely synchronized.
+        0×10 16 Serious error. Robocopy did not copy any files. This is either 
+             a usage error or an error due to insufficient access privileges on 
+             the source or destination directories.
+        0×08 8 Some files or directories could not be copied (copy errors   
+             occurred and the retry limit was exceeded). Check these errors further.
+        0×04 4 Some Mismatched files or directories were detected. Examine the 
+             output log. Housekeeping is probably necessary.
+        0×02 2 Some Extra files or directories were detected. Examine the 
+             output log. Some housekeeping may be needed.
+        0×01 1 One or more files were copied successfully (that is, new files 
+             have arrived).
+        0×00 0 No errors occurred, and no copying was done. The source and 
+             destination directory trees are completely synchronized.
 
         (https://support.microsoft.com/en-us/kb/954404?wa=wsignin1.0)
 
-        0	No files were copied. No failure was encountered. No files were mismatched. The files already exist in the destination directory; therefore, the copy operation was skipped.
+        0	No files were copied. No failure was encountered. No files were 
+            mismatched. The files already exist in the destination directory; 
+            therefore, the copy operation was skipped.
         1	All files were copied successfully.
-        2	There are some additional files in the destination directory that are not present in the source directory. No files were copied.
-        3	Some files were copied. Additional files were present. No failure was encountered.
-        5	Some files were copied. Some files were mismatched. No failure was encountered.
-        6	Additional files and mismatched files exist. No files were copied and no failures were encountered. This means that the files already exist in the destination directory.
-        7	Files were copied, a file mismatch was present, and additional files were present.
+        2	There are some additional files in the destination directory that 
+            are not present in the source directory. No files were copied.
+        3	Some files were copied. Additional files were present. No failure 
+            was encountered.
+        5	Some files were copied. Some files were mismatched. No failure was 
+            encountered.
+        6	Additional files and mismatched files exist. No files were copied 
+            and no failures were encountered. This means that the files already 
+            exist in the destination directory.
+        7	Files were copied, a file mismatch was present, and additional  
+            files were present.
         8	Several files did not copy.
+        
         * Note Any value greater than 8 indicates that there was at least one failure during the copy operation.
-
-        CHANGELOG
-        2015/04/01 Function born
-
-        AUTHOR
-        Brecht.Gijbels@heidelbergcement.com #>
+        #>
 
     Param (
         [int]$ExitCode
@@ -342,28 +336,26 @@ Function ConvertFrom-RobocopyLogHC {
             Create a PSCustomObject from a Robocopy log file.
 
         .DESCRIPTION
-            Parses Robocopy logs into a collection of objects summarizing each Robocopy operation.
+            Parses Robocopy logs into a collection of objects summarizing each 
+            Robocopy operation.
 
         .EXAMPLE
             ConvertFrom-RobocopyLogHC 'C:\robocopy.log'
-            Source      : \\grouphc.net\bnl\DEPARTMENTS\Brussels\CBR\SHARE\Target4\
-            Destination : \\grouphc.net\bnl\DEPARTMENTS\Brussels\CBR\SHARE\Target1\
-            Dirs        : @{Total=2; Copied=0; Skipped=2; Mismatch=0; FAILED=0; Extras=0}
-            Files       : @{Total=203; Copied=0; Skipped=203; Mismatch=0; FAILED=0; Extras=0}
-            Times       : @{Total=0:00:00; Copied=0:00:00; FAILED=0:00:00; Extras=0:00:00}
-
-        .EXAMPLE
-            $RobLog = ConvertFrom-RobocopyLogHC -LogFile 'T:\Robo.log'
-            '$Roblog.Times.Total' gives us the total time
-
-        .NOTES
-            CHANGELOG
-            2015/04/02 Function born
-            2015/04/05 Corrected search for robo error log 'Source -' is used instead of 'Source :'
-            2015/04/13 Correct '(($_.Split(':'))[1]).trim()' to '(($_.Split(':', 2))[1]).trim()' in case of paths like 'C:\Path'
-
-            AUTHOR
-            Brecht.Gijbels@heidelbergcement.com #>
+            Source      : \\contoso.net\folder1\
+            Destination : \\contoso.net\folder2\
+            Dirs        : @{
+                Total=2; Copied=0; Skipped=2; 
+                Mismatch=0; FAILED=0; Extras=0
+            }
+            Files       : @{
+                Total=203; Copied=0; Skipped=203; 
+                Mismatch=0; FAILED=0; Extras=0
+            }
+            Times       : @{
+                Total=0:00:00; Copied=0:00:00; 
+                FAILED=0:00:00; Extras=0:00:00
+            }
+#>
 
     Param (
         [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position = 0)]
@@ -569,10 +561,7 @@ Function Install-RemoteAppHC {
 
     .DESCRIPTION
         Install software on a remote machine and copy the install files from SCCM to the C:\Cabs folder
-
-    .NOTES
-        AUTHOR: Brecht.Gijbels@heidelbergcement.com
-    #>
+#>
     [CmdletBinding()]
     Param (
         [parameter(Mandatory)]
@@ -599,18 +588,16 @@ Function Remove-EmptyParamsHC {
         Removes empty key/values pairs from a hashtable.
 
     .DESCRIPTION
-        Removes empty key/values pairs from a hashtable. This can be usefull for functions that are used with splatting.
+        Removes empty key/values pairs from a hashtable. This can be useful for 
+        functions that are used with splatting.
 
     .EXAMPLE
         Remove-EmptyParamsHC $CopyParams
-        Removes all the pairs that are empty and corrects the original hashtable to only contain key/value pairs where their are values available.
-
-    .NOTES
-        CHANGELOG
-        2016/02/02 Function born
-
-        AUTHOR
-        Brecht.Gijbels@heidelbergcement.com #>
+        
+        Removes all the pairs that are empty and corrects the original 
+        hashtable to only contain key/value pairs where their are values 
+        available.
+#>
 
     Param(
         [HashTable]$Name
@@ -647,8 +634,7 @@ Function Remove-InvalidFileNameCharsHC {
     .EXAMPLE
         'Clôture Yess 06/2015 - afsluit Yess 06/2015 - Closure Yess 06/2015' | Remove-InvalidFileNameCharsHC
         Clôture Yess 062015 - afsluit Yess 062015 - Closure Yess 062015
-
-    .NOTES AUTHOR: Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     [CmdletBinding()]
     Param(
@@ -681,11 +667,7 @@ Function Remove-PowerShellWildcardCharsHC {
     .EXAMPLE
         'My file[0].txt' | Remove-PowerShellWildcardCharsHC
         Removes the brackets '[]' from the string to end up with 'My file0.txt'
-
-    .NOTES
-        2018/03/19 Function born
-
-        AUTHOR: Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     [CmdletBinding()]
     Param (
@@ -761,28 +743,29 @@ Function Test-ParameterInPositionAndMandatoryHC {
 
     .DESCRIPTION
         Test for parameters in a specific position that are mandatory. When the
-        parameter is not in that postion, the name is incorrect or it's not
-        mandatory, the incorrect paramter's name is generated as output. In case
-        all paramters are correct, no output is generated.
+        parameter is not in that position, the name is incorrect or it's not
+        mandatory, the incorrect parameter's name is generated as output. In 
+        case all parameters are correct, no output is generated.
 
     .PARAMETER Collection
         The parameters from the script/function.
 
     .PARAMETER Requirement
-        The desired postion and parameter name.
+        The desired position and parameter name.
 
     .EXAMPLE
-        Check if parameter 'ScriptName' is in the first postion and if parameter 'Number'
-        is in the second position. They also need to be 'Mandatory'.
+        Check if parameter 'ScriptName' is in the first position and if 
+        parameter 'Number' is in the second position. They also need to be 
+        'Mandatory'.
 
         "Param (
             [Parameter(Mandatory)]
             [String]`$ScriptName,
             [Parameter(Mandatory = `$false)]
             [Int]`$Number
-        )" | Out-File TestScipt.ps1
+        )" | Out-File TestScript.ps1
 
-        Test-ParameterInPositionAndMandatoryHC -Collection ((Get-Command ".\TestScipt.ps1").Parameters) -Requirement @{
+        Test-ParameterInPositionAndMandatoryHC -Collection ((Get-Command ".\TestScript.ps1").Parameters) -Requirement @{
             1 = 'ScriptName'
             2 = 'Number'
         }
@@ -801,16 +784,13 @@ Function Test-ParameterInPositionAndMandatoryHC {
             'Foo'
         }
 
-        Test-ParameterInPositionAndMandatoryHC -Collection ((Get-Command Get-Foo).Parameters) -Requirement @{
+        Test-ParameterInPositionAndMandatoryHC -Collection (
+            (Get-Command Get-Foo).Parameters
+        ) -Requirement @{
             1 = 'Name'
             2 = 'Time'
         }
-
-    .NOTES
-	    CHANGELOG
-	        2018/03/26 Function born
-
-	    AUTHOR Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     Param (
         [Parameter(Mandatory)]
@@ -849,16 +829,19 @@ Function Test-ParameterInPositionAndMandatoryHC {
 Function Use-CultureHC {
     <#
     .SYNOPSIS
-        Function that permits us to run PowerShell code in another culture (regional settings).
+        Run PowerShell code in another culture 
 
     .DESCRIPTION
-        This function allows us to run PowerShell code in another culture (regional settings).
+        This function allows us to run PowerShell code in another culture 
+        (regional settings).
 
     .PARAMETER Culture
-        The culture ID you want to use: en-US (English), de-DE (German), nl-BE (Belgium), ..
+        The culture ID you want to use: 
+        en-US (English), de-DE (German), nl-BE (Belgium), ..
 
     .PARAMETER Code
-        PowerShell code, like a script block, that you want to run using the specified culture.
+        PowerShell code, like a script block, that you want to run using the 
+        specified culture.
 
     .EXAMPLE
         Use-CultureHC en-US {Get-Date}
@@ -875,13 +858,7 @@ Function Use-CultureHC {
     .EXAMPLE
          [system.Globalization.CultureInfo]::GetCultures('AllCultures')
          This command will list all the supported cultures on the system.
-
-    .NOTES
-        CHANGELOG
-        2014/07/14 Function born
-
-        AUTHOR
-        Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     Param (
         [Parameter(Mandatory)]
