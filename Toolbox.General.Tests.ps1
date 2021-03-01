@@ -101,7 +101,7 @@ Describe 'Remove-PowerShellWildcardCharsHC' {
         'KiwiAnd Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
     }
 }
-Describe 'Parameter-ParameterInPositionAndMandatoryHC' {
+Describe 'Test-ParameterInPositionAndMandatoryHC' {
     It 'parameter mandatory' {
         Function Get-Foo {
             Param (
