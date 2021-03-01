@@ -52,7 +52,29 @@ Describe 'Get-DefaultParameterValuesHC' {
                     PaperSize  = 'A4'
                 }
                 $actual.Keys | Should -HaveCount $expected.Keys.Count
-                $actual.Keys | ForEach-Object { $actual[$_] | Should -Be $expected[$_] }
+                $actual.Keys | ForEach-Object { 
+                    $actual[$_] | Should -Be $expected[$_] 
+                }
+            }
+        }
+        Context 'should not retrieve the default value when' {
+            It 'the parameter is Mandatory' {
+                Function Test-Function {
+                    Param (
+                        [Parameter(Mandatory)]
+                        [String]$PrinterName = 'NotValidName',
+                        [String]$PaperSize = 'A4'
+                    )
+                }
+    
+                $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
+    
+                $expected = @{
+                    PaperSize = 'A4'
+                }
+                $actual.Keys | Should -HaveCount $expected.Keys.Count
+                $actual.Keys | ForEach-Object { 
+                    $actual[$_] | Should -Be $expected[$_] }
             }
         }
         Context 'should convert' {
@@ -65,7 +87,7 @@ Describe 'Get-DefaultParameterValuesHC' {
 
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
-                $actual.userName | should -BeExactly $env:USERNAME
+                $actual.userName | Should -BeExactly $env:USERNAME
             }  -Tag test
             It 'an array of strings to an array of strings with env variables' {
                 Function Test-Function {
@@ -76,12 +98,12 @@ Describe 'Get-DefaultParameterValuesHC' {
 
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
-                $actual.ComputerNames[0] | should -BeExactly $env:COMPUTERNAME
-                $actual.ComputerNames[1] | should -BeExactly 'PC2'
+                $actual.ComputerNames[0] | Should -BeExactly $env:COMPUTERNAME
+                $actual.ComputerNames[1] | Should -BeExactly 'PC2'
             } 
         }
     }
-}  -Tag test
+}
 Describe 'Remove-PowerShellWildcardCharsHC' {
     It "Remove character '['" {
         'Kiwi[And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
@@ -205,3 +227,7 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
         } | Should -BeExactly 'Time'
     }
 }
+
+<# 
+
+Invoke-Pester 'C:\Program Files\WindowsPowerShell\Modules\Toolbox.General\Toolbox.General.Tests.ps1' -output detailed -tag test #>

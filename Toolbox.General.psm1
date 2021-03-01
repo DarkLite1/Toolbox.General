@@ -478,14 +478,17 @@ Function Get-DiskSpaceInfoHC {
 Function Get-DefaultParameterValuesHC {
     <#
 .SYNOPSIS
-    Get the the default values for parameters set in a script or function
+    Get the default values for parameters set in a script or function.
+
+.DESCRIPTION
+    A hash table is returned containing the name and the default value of the 
+    parameters used in a script or function. When a parameter is mandatory but
+    still has a default value this value will not be returned.
 
 .PARAMETER Path
     Function name or path to the script file
 
 .EXAMPLE
-    Get the default values for the parameters
-
     Function Test-Function {
         Param (
             [Parameter(Mandatory)]
@@ -497,6 +500,12 @@ Function Get-DefaultParameterValuesHC {
         )
     }
     Get-DefaultParameterValuesHC -Path 'Test-Function'
+
+    Get the default values for parameters that are not mandatory.
+    @{
+        ScriptName = 'Get printers'
+        PaperSize = 'A4'
+    }
 #>
 
     [CmdletBinding()]
@@ -532,7 +541,13 @@ Function Get-DefaultParameterValuesHC {
         $defaultValueParameters = @($ast.FindAll( { 
                     $args[0] -is [System.Management.Automation.Language.ParameterAst] }
                 , $true) | 
-            Where-Object { $_.DefaultValue } | 
+            Where-Object { 
+                ($_.DefaultValue) -and
+                (-not ($_.Attributes | 
+                Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
+                ForEach-Object -MemberName NamedArguments | 
+                Where-Object { $_.ArgumentName -eq 'Mandatory' }))
+            } | 
             Select-Object @selectParams)
         
         foreach ($d in $defaultValueParameters) {
