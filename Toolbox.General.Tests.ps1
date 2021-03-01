@@ -1,15 +1,16 @@
 ﻿#Requires -Modules Pester
 #Requires -Version 5.1
 
-$moduleName = 'Toolbox.General'
+BeforeDiscovery {
+    # used by inModuleScope
+    $testModule = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
+    $testModuleName = $testModule.Split('\')[-1].TrimEnd('.psm1')
 
-$testModule = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
-Remove-Module $moduleName -Force -Verbose:$false -EA Ignore
-Import-Module $testModule -Force -Verbose:$false
-
-
+    Remove-Module $testModuleName -Force -Verbose:$false -EA Ignore
+    Import-Module $testModule -Force -Verbose:$false
+}
 Describe 'Get-DefaultParameterValuesHC' {
-    InModuleScope $moduleName {
+    InModuleScope $testModuleName {
         Context 'should retrieve the default values' {
             It 'from a script' {
                 $testScript = (New-Item -Path "TestDrive:\scripts.ps1" -Force -ItemType File -EA Ignore).FullName
