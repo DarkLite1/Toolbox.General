@@ -95,154 +95,6 @@ Function Add-FunctionHC {
         }
     }
 }
-Function ConvertTo-ArrayHC {
-    <#
-    .SYNOPSIS
-        Convert different types of collections (valueCollection, collection`1, 
-        ...) to an array.
-
-    .DESCRIPTION
-        This function is convenient for Pester testing.
-s#>
-
-    Begin {
-        $output = @();
-    }
-    Process {
-        $output += $_;
-    }
-    End {
-        return , $output;
-    }
-}
-Function Copy-ObjectHC {
-    <#
-    .SYNOPSIS
-        Make a deep copy of an object.
-
-    .DESCRIPTION
-        In PowerShell, when you copy an object (array, hashtable, ..), there's 
-        always a link with the original. So if you change a property in the new 
-        object it will also be changed in the original one. To avoid this from 
-        happening, a deep copy with .NET is required.
-
-    .PARAMETER Name
-        Name of the object we need to copy.
-
-    .EXAMPLE
-        The $NewArray object contains a full copy of the $OriginalArray
-        $NewArray = Copy-ObjectHC -Original $OriginalArray
-
-    .EXAMPLE
-        Make a deep copy of a hashtable
-
-        $OriginalHash = @{
-            'SrvBatch' = 'FullControl'
-        }
-
-        $NewHash = Copy-ObjectHC $OriginalHash
-        $NewHash.Add('bob', 'FullControl')
-        Write-Host 'New hash:' -ForegroundColor Yellow
-        $NewHash
-
-        Write-Host 'Original hash:' -ForegroundColor Yellow
-        $OriginalHash
-#>
-
-    [CmdletBinding()]
-    Param (
-        [parameter(Mandatory)]
-        [Object]$Name
-    )
-
-    Process {
-        # Serialize and Deserialize data using BinaryFormatter
-        $ms = New-Object System.IO.MemoryStream
-        $bf = New-Object System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-        $bf.Serialize($ms, $Name)
-        $ms.Position = 0
-
-        #Deep copied data
-        $bf.Deserialize($ms)
-        $ms.Close()
-    }
-}
-Function Format-JsonHC {
-    <#
-    .SYNOPSIS
-        Format a .json file to look prettier
-    #>
-
-    Param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [String]$json
-    )
-
-    $indent = 0;
-    ($json -Split '\n' |
-        ForEach-Object {
-            if ($_ -match '[\}\]]') {
-                # This line contains  ] or }, decrement the indentation level
-                $indent--
-            }
-            $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
-            if ($_ -match '[\{\[]') {
-                # This line contains [ or {, increment the indentation level
-                $indent++
-            }
-            $line
-        }) -Join "`n"
-}
-Function Merge-ObjectsHC {
-    <#
-    .SYNOPSIS
-        Combine two objects into one.
- 
-    .DESCRIPTION
-        Combine two objects into one. These can be custom PowerShell objects or 
-        other system objects
- 
-    .EXAMPLE
-        Combine objects allow you to combine two separate custom objects into one.
- 
-        $Object1 = [PsCustomObject]@{firstName = 'Bob'; lastName = 'Lee Swagger'}
-        $Object2 = [PsCustomObject]@{hobby = 'Shooting'; rank = 'Sergeant'}
-    
-        Combine-Object -Object1 $Object1 -Object2 $Object2
-    
-        Name          Value                                                                                     
-        ----          ----                                                                    
-        fistName      Bob
-        lastName      Lee Swagger
-        hobby         Shooting
-        rank          Sergeant
-	
-    .EXAMPLE
-        Combining system objects
- 
-        $User = Get-ADUser -identity vanGulick
-        $Bios = Get-wmiObject -class win32_bios
-    
-        Combine-Objects -Object1 $bios -Object2 $User
- #>
- 
-    Param (
-        [Parameter(Mandatory)]$Object1, 
-        [Parameter(Mandatory)]$Object2
-    )
-    
-    $hash = [Ordered]@{ }
- 
-    foreach ( $Property in $Object1.psObject.Properties) {
-        $hash[$Property.Name] = $Property.value
-    }
- 
-    foreach ( $Property in $Object2.psObject.Properties) {
-        $hash[$Property.Name] = $Property.value
-    }
-    
-    [psCustomObject]$hash
-}
 Function ConvertFrom-RobocopyExitCodeHC {
     <#
     .SYNOPSIS
@@ -423,6 +275,104 @@ Function ConvertFrom-RobocopyLogHC {
         Write-Output $Obj
     }
 }
+Function ConvertTo-ArrayHC {
+    <#
+    .SYNOPSIS
+        Convert different types of collections (valueCollection, collection`1, 
+        ...) to an array.
+
+    .DESCRIPTION
+        This function is convenient for Pester testing.
+s#>
+
+    Begin {
+        $output = @();
+    }
+    Process {
+        $output += $_;
+    }
+    End {
+        return , $output;
+    }
+}
+Function Copy-ObjectHC {
+    <#
+    .SYNOPSIS
+        Make a deep copy of an object.
+
+    .DESCRIPTION
+        In PowerShell, when you copy an object (array, hashtable, ..), there's 
+        always a link with the original. So if you change a property in the new 
+        object it will also be changed in the original one. To avoid this from 
+        happening, a deep copy with .NET is required.
+
+    .PARAMETER Name
+        Name of the object we need to copy.
+
+    .EXAMPLE
+        The $NewArray object contains a full copy of the $OriginalArray
+        $NewArray = Copy-ObjectHC -Original $OriginalArray
+
+    .EXAMPLE
+        Make a deep copy of a hashtable
+
+        $OriginalHash = @{
+            'SrvBatch' = 'FullControl'
+        }
+
+        $NewHash = Copy-ObjectHC $OriginalHash
+        $NewHash.Add('bob', 'FullControl')
+        Write-Host 'New hash:' -ForegroundColor Yellow
+        $NewHash
+
+        Write-Host 'Original hash:' -ForegroundColor Yellow
+        $OriginalHash
+#>
+
+    [CmdletBinding()]
+    Param (
+        [parameter(Mandatory)]
+        [Object]$Name
+    )
+
+    Process {
+        # Serialize and Deserialize data using BinaryFormatter
+        $ms = New-Object System.IO.MemoryStream
+        $bf = New-Object System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+        $bf.Serialize($ms, $Name)
+        $ms.Position = 0
+
+        #Deep copied data
+        $bf.Deserialize($ms)
+        $ms.Close()
+    }
+}
+Function Format-JsonHC {
+    <#
+    .SYNOPSIS
+        Format a .json file to look prettier
+    #>
+
+    Param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [String]$json
+    )
+
+    $indent = 0;
+    ($json -Split '\n' |
+        ForEach-Object {
+            if ($_ -match '[\}\]]') {
+                # This line contains  ] or }, decrement the indentation level
+                $indent--
+            }
+            $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
+            if ($_ -match '[\{\[]') {
+                # This line contains [ or {, increment the indentation level
+                $indent++
+            }
+            $line
+        }) -Join "`n"
+}
 Function Get-DiskSpaceInfoHC {
     [CmdletBinding()]
     Param(
@@ -576,6 +526,56 @@ Function Install-RemoteAppHC {
     Copy-Item -LiteralPath (Split-Path $Software -Parent) -Destination $TempFolder -Container -Recurse -Force
     $LocalPath = Join-Path ('C:\' + (Split-Path $TempFolder -Leaf)) (Join-Path (Split-Path $Software -Parent | Split-Path -Leaf) (Split-Path $Software -Leaf))
     Invoke-Command -ScriptBlock { cscript.exe $Using:LocalPath } -Computer $Computer
+}
+Function Merge-ObjectsHC {
+    <#
+    .SYNOPSIS
+        Combine two objects into one.
+ 
+    .DESCRIPTION
+        Combine two objects into one. These can be custom PowerShell objects or 
+        other system objects
+ 
+    .EXAMPLE
+        Combine objects allow you to combine two separate custom objects into one.
+ 
+        $Object1 = [PsCustomObject]@{firstName = 'Bob'; lastName = 'Lee Swagger'}
+        $Object2 = [PsCustomObject]@{hobby = 'Shooting'; rank = 'Sergeant'}
+    
+        Combine-Object -Object1 $Object1 -Object2 $Object2
+    
+        Name          Value                                                                                     
+        ----          ----                                                                    
+        fistName      Bob
+        lastName      Lee Swagger
+        hobby         Shooting
+        rank          Sergeant
+	
+    .EXAMPLE
+        Combining system objects
+ 
+        $User = Get-ADUser -identity vanGulick
+        $Bios = Get-wmiObject -class win32_bios
+    
+        Combine-Objects -Object1 $bios -Object2 $User
+ #>
+ 
+    Param (
+        [Parameter(Mandatory)]$Object1, 
+        [Parameter(Mandatory)]$Object2
+    )
+    
+    $hash = [Ordered]@{ }
+ 
+    foreach ( $Property in $Object1.psObject.Properties) {
+        $hash[$Property.Name] = $Property.value
+    }
+ 
+    foreach ( $Property in $Object2.psObject.Properties) {
+        $hash[$Property.Name] = $Property.value
+    }
+    
+    [psCustomObject]$hash
 }
 Function Remove-EmptyParamsHC {
     <#
