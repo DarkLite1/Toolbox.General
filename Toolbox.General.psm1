@@ -460,37 +460,28 @@ Function Get-DefaultParameterValuesHC {
             },
             @{ 
                 Name       = 'Value'; 
-                Expression = { 
-                    if ($_.DefaultValue.StaticType.IsArray) {
-                        $_.DefaultValue.SubExpression.Statements.PipelineElements.Expression.Elements.Extent.Text
-                    }
-                    else {
-                        if ($_.DefaultValue.Value) { $_.DefaultValue.Value }
-                        else { $_.DefaultValue.Extent.Text }
-                    }
-                }
+                Expression = { $_.DefaultValue.Extent.Text }
             }
         }
-    
+
+        $defaultValueParameters = $ast.FindAll( {
+                $args[0] -is 
+                [System.Management.Automation.Language.ParameterAst] 
+            } , $true) | 
+        Where-Object { 
+            ($_.DefaultValue) -and
+            (-not ($_.Attributes | 
+                    Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
+                    ForEach-Object -MemberName NamedArguments | 
+                    Where-Object { $_.ArgumentName -eq 'Mandatory' }))
+        } | 
+        Select-Object @selectParams
+                
         $result = @{ }
 
-        $defaultValueParameters = @($ast.FindAll( {
-                    $args[0] -is 
-                    [System.Management.Automation.Language.ParameterAst] 
-                } , $true) | 
-            Where-Object { 
-                ($_.DefaultValue) -and
-                (-not ($_.Attributes | 
-                        Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
-                        ForEach-Object -MemberName NamedArguments | 
-                        Where-Object { $_.ArgumentName -eq 'Mandatory' }))
-            } | 
-            Select-Object @selectParams)
-        
         foreach ($d in $defaultValueParameters) {
             $result[$d.Name] = foreach ($value in $d.Value) {
-                $ExecutionContext.InvokeCommand.ExpandString($value) -replace 
-                "^`"|`"$|'$|^'" 
+                $ExecutionContext.InvokeCommand.InvokeScript($value, $true)
             }
         }
         $result

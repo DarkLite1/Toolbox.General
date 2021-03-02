@@ -12,7 +12,7 @@ BeforeDiscovery {
 Describe 'Get-DefaultParameterValuesHC' {
     InModuleScope $testModuleName {
         Context 'should retrieve the default values' {
-            It 'from a script' {
+            It 'from a script file' {
                 $testScript = (New-Item -Path "TestDrive:\scripts.ps1" -Force -ItemType File -EA Ignore).FullName
                 @"
         Param (
@@ -24,14 +24,12 @@ Describe 'Get-DefaultParameterValuesHC' {
             [String]`$PaperSize = 'A4'
         )
 "@ | Out-File -FilePath $testScript -Encoding utf8 -Force
-                $actual = Get-DefaultParameterValuesHC -Path $testScript
 
-                $expected = @{
-                    ScriptName = 'Get printers'
-                    PaperSize  = 'A4'
-                }
-                $actual.Keys | Should -HaveCount $expected.Keys.Count
-                $actual.Keys | ForEach-Object { $actual[$_] | Should -Be $expected[$_] }
+                $actual = Get-DefaultParameterValuesHC -Path $testScript
+                
+                $actual.Keys | Should -HaveCount 2
+                $actual.ScriptName | Should -Be 'Get printers'
+                $actual.PaperSize | Should -Be 'A4'
             }
             It 'from a function' {
                 Function Test-Function {
@@ -46,15 +44,10 @@ Describe 'Get-DefaultParameterValuesHC' {
                 }
     
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
-    
-                $expected = @{
-                    ScriptName = 'Get printers'
-                    PaperSize  = 'A4'
-                }
-                $actual.Keys | Should -HaveCount $expected.Keys.Count
-                $actual.Keys | ForEach-Object { 
-                    $actual[$_] | Should -Be $expected[$_] 
-                }
+
+                $actual.Keys | Should -HaveCount 2
+                $actual.ScriptName | Should -Be 'Get printers'
+                $actual.PaperSize | Should -Be 'A4'
             }
         }
         Context 'should not retrieve the default value when' {
@@ -69,12 +62,8 @@ Describe 'Get-DefaultParameterValuesHC' {
     
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
     
-                $expected = @{
-                    PaperSize = 'A4'
-                }
-                $actual.Keys | Should -HaveCount $expected.Keys.Count
-                $actual.Keys | ForEach-Object { 
-                    $actual[$_] | Should -Be $expected[$_] }
+                $actual.Keys | Should -HaveCount 1
+                $actual.PaperSize | Should -Be 'A4'
             }
             It 'there are no default values' {
                 Function Test-Function {
@@ -101,6 +90,7 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
                 $actual.userName | Should -BeExactly $env:USERNAME
+                $actual.userName | Should -BeOfType [String]
             }
             It 'an array of strings to an array of strings with env variables' {
                 Function Test-Function {
@@ -111,23 +101,24 @@ Describe 'Get-DefaultParameterValuesHC' {
 
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
+                $actual.ComputerNames | Should -HaveCount 2
                 $actual.ComputerNames[0] | Should -BeExactly $env:COMPUTERNAME
                 $actual.ComputerNames[1] | Should -BeExactly 'PC2'
             } 
             It 'a hashtable to hashtable' {
                 Function Test-Function {
                     Param (
-                        [HashTable]$Settings = @{ Duplex = 'Yes'}
+                        [HashTable]$Settings = @{ Duplex = 'Yes' }
                     )
                 }
 
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
                 $actual.Settings | Should -BeOfType [HashTable]
-            } -Skip
+            }`
         }
     }
-}
+} -Tag test
 Describe 'Remove-PowerShellWildcardCharsHC' {
     It "Remove character '['" {
         'Kiwi[And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
@@ -251,7 +242,3 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
         } | Should -BeExactly 'Time'
     }
 }
-
-<# 
-
-Invoke-Pester 'C:\Program Files\WindowsPowerShell\Modules\Toolbox.General\Toolbox.General.Tests.ps1' -Output detailed -TagFilter test #>
