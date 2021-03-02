@@ -118,7 +118,7 @@ Describe 'Get-DefaultParameterValuesHC' {
             }`
         }
     }
-} -Tag test
+}
 Describe 'Remove-PowerShellWildcardCharsHC' {
     It "Remove character '['" {
         'Kiwi[And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
