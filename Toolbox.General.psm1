@@ -59,7 +59,6 @@ Get-Content $ImportFile
         $_.Trim()
     }
 }
-
 Function Add-FunctionHC {
     <#
     .SYNOPSIS
@@ -96,7 +95,6 @@ Function Add-FunctionHC {
         }
     }
 }
-
 Function ConvertTo-ArrayHC {
     <#
     .SYNOPSIS
@@ -117,7 +115,6 @@ s#>
         return , $output;
     }
 }
-
 Function Copy-ObjectHC {
     <#
     .SYNOPSIS
@@ -170,7 +167,6 @@ Function Copy-ObjectHC {
         $ms.Close()
     }
 }
-
 Function Format-JsonHC {
     <#
     .SYNOPSIS
@@ -197,7 +193,6 @@ Function Format-JsonHC {
             $line
         }) -Join "`n"
 }
-
 Function Merge-ObjectsHC {
     <#
     .SYNOPSIS
@@ -248,7 +243,6 @@ Function Merge-ObjectsHC {
     
     [psCustomObject]$hash
 }
-
 Function ConvertFrom-RobocopyExitCodeHC {
     <#
     .SYNOPSIS
@@ -332,7 +326,6 @@ Function ConvertFrom-RobocopyExitCodeHC {
         return $Message
     }
 }
-
 Function ConvertFrom-RobocopyLogHC {
     <#
         .SYNOPSIS
@@ -430,7 +423,6 @@ Function ConvertFrom-RobocopyLogHC {
         Write-Output $Obj
     }
 }
-
 Function Get-DiskSpaceInfoHC {
     [CmdletBinding()]
     Param(
@@ -469,7 +461,6 @@ Function Get-DiskSpaceInfoHC {
         }
     }
 }
-
 Function Get-DefaultParameterValuesHC {
     <#
 .SYNOPSIS
@@ -558,7 +549,6 @@ Function Get-DefaultParameterValuesHC {
         throw "Failed retrieving the default parameter values: $_"
     }
 }
-
 Function Install-RemoteAppHC {
     <#
     .SYNOPSIS
@@ -587,7 +577,6 @@ Function Install-RemoteAppHC {
     $LocalPath = Join-Path ('C:\' + (Split-Path $TempFolder -Leaf)) (Join-Path (Split-Path $Software -Parent | Split-Path -Leaf) (Split-Path $Software -Leaf))
     Invoke-Command -ScriptBlock { cscript.exe $Using:LocalPath } -Computer $Computer
 }
-
 Function Remove-EmptyParamsHC {
     <#
     .SYNOPSIS
@@ -622,7 +611,6 @@ Function Remove-EmptyParamsHC {
         }
     }
 }
-
 Function Remove-InvalidFileNameCharsHC {
     <#
     .SYNOPSIS
@@ -662,7 +650,6 @@ Function Remove-InvalidFileNameCharsHC {
         }
     }
 }
-
 Function Remove-PowerShellWildcardCharsHC {
     <#
     .SYNOPSIS
@@ -695,7 +682,6 @@ Function Remove-PowerShellWildcardCharsHC {
         $Name
     }
 }
-
 Function Test-ErrorHandlingInModuleHC {
     Try {
         throw 'My custom error'
@@ -709,7 +695,6 @@ Function Test-ErrorHandlingInModuleHC {
         'do this always'
     }
 }
-
 Function Test-IsAdminHC {
     <#
         .SYNOPSIS
@@ -747,7 +732,6 @@ Function Test-IsAdminHC {
         throw "Failed to determine if the user '$SamAccountName' is local admin: $_"
     }
 }
-
 Function Test-ParameterInPositionAndMandatoryHC {
     <#
     .SYNOPSIS
@@ -839,7 +823,6 @@ Function Test-ParameterInPositionAndMandatoryHC {
         }
     }
 }
-
 Function Use-CultureHC {
     <#
     .SYNOPSIS
