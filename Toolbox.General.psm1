@@ -727,7 +727,7 @@ Function Show-MenuHC {
 
     [CmdLetBinding()]
     Param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ValueFromPipeline)]
         $Items,
         $QuitSelector = @{ 'Q' = 'Quit' },
         $displayTemplate = '{0}) {1}',
