@@ -734,6 +734,8 @@ Function Show-MenuHC {
         $SelectionPrompt = 'Select an option:'
     )
 
+    if (-not $Items) { return }
+
     #region Build hash table with selector and value
     $hash = [Ordered]@{}
 
