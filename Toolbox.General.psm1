@@ -728,7 +728,7 @@ Function Show-MenuHC {
     [CmdLetBinding()]
     Param (
         [Parameter(Mandatory, ValueFromPipeline)]
-        $Items,
+        [Array]$Items,
         $QuitSelector = @{ 'Q' = 'Quit' },
         $displayTemplate = '{0}) {1}',
         $SelectionPrompt = 'Select an option:'
