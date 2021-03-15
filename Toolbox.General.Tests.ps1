@@ -242,3 +242,179 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
         } | Should -BeExactly 'Time'
     }
 }
+Describe 'Show-MenuHC' {
+    Context 'the mandatory parameters are' {
+        It '<_>' -ForEach @( 'Items' ) {
+            (Get-Command Show-MenuHC).Parameters[$_].Attributes.Mandatory | 
+            Should -BeTrue
+        }
+    } 
+    Context 'the quit selector' {
+        Describe 'when used' {
+            BeforeAll {
+                Mock Write-Host
+                Mock Read-Host { 'Q' }
+            
+                $testParams = @{ 
+                    Items           = @('banana', 'kiwi')
+                    QuitSelector    = @{ 'Q' = 'Quit' } 
+                    DisplayTemplate = '{0}) {1}'
+                }
+                $testResult = Show-MenuHC @testParams
+            }
+            It 'display a line to leave the menu' {
+                Should -Invoke Write-Host -Times 1 -Exactly -Scope Describe -ParameterFilter {
+                    $Object -eq 'Q) Quit'
+                }
+            }
+            It 'return nothing from the function' {
+                $testResult | Should -BeNullOrEmpty
+            }
+        }
+        Describe 'when not used' {
+            BeforeAll {
+                Mock Write-Host
+                Mock Read-Host { '1' }
+            
+                $testParams = @{ 
+                    Items           = @('banana', 'kiwi')
+                    QuitSelector    = $null
+                    DisplayTemplate = '{0}) {1}'
+                }
+                $testResult = Show-MenuHC @testParams
+            }
+            It 'the user cannot leave the menu without selecting something' {
+                Should -Invoke Write-Host -Times 2 -Exactly -Scope Describe
+                Should -Invoke Write-Host -Times 2 -Exactly -Scope Describe -ParameterFilter {
+                    $Object -match 'banana|kiwi'
+                }
+            }
+        }
+    }
+    Context 'selected properties' {
+        BeforeAll {
+            Mock Write-Host
+            Mock Read-Host { '1' }
+        
+            $testParams = @{ 
+                Items           = @(
+                    [PSCustomObject]@{ Name = 'banana'; Color = 'yellow' }
+                    [PSCustomObject]@{ Name = 'kiwi'; Color = 'green' }
+                )
+                QuitSelector    = $null
+                DisplayTemplate = '{0}) {1}'
+                Properties      = 'name'
+            }
+            $testResult = Show-MenuHC @testParams
+        }
+        It 'are only visible in the menu' {
+            Should -Invoke Write-Host -Times 2 -Exactly -Scope Context
+            Should -Invoke Write-Host -Times 1 -Exactly -Scope Context -ParameterFilter {
+                $Object -eq '1) @{Name=banana}'
+            }
+            Should -Invoke Write-Host -Times 1 -Exactly -Scope Context -ParameterFilter {
+                $Object -eq '2) @{Name=kiwi}'
+            }
+        }
+        It 'do not change the return value of the function' {
+            $testResult | Should -HaveCount 1
+            $testResult.Name | Should -Be 'banana'
+            $testResult.Color | Should -Be 'yellow'
+            $testResult | Should -BeOfType [PSCustomObject]
+        }
+    }
+    Context 'when the items to display are' {
+        BeforeDiscovery {
+            $testCases = @(
+                @{
+                    testName          = 'string'
+                    testItems         = @( 'banana', 'kiwi' )
+                    testWriteHostCall = @( '1) banana', '2) kiwi' )
+                }
+                @{
+                    testName          = 'PSCustomObject'
+                    testItems         = @(
+                        [PSCustomObject]@{ Name = 'banana'; Color = 'yellow' }
+                        [PSCustomObject]@{ Name = 'kiwi'; Color = 'green' }
+                    )
+                    testWriteHostCall = @( 
+                        '1) @{Name=banana; Color=yellow}', 
+                        '2) @{Name=kiwi; Color=green}'
+                    )
+                }
+                @{
+                    testName          = 'HashTable'
+                    testItems         = @(
+                        @{ Name = 'banana'; Color = 'yellow' }
+                        @{ Name = 'kiwi'; Color = 'green' }
+                    )
+                    testWriteHostCall = @( 
+                        '1) @{Name=banana; Color=yellow}', 
+                        '2) @{Name=kiwi; Color=green}'
+                    )
+                }
+            )
+        }
+        Context 'not piped to the function and of type' {
+            Describe '<testName>' -Foreach $testCases {
+                BeforeAll {
+                    Mock Write-Host
+                    Mock Read-Host { '1' }
+            
+                    $testParams = @{ 
+                        QuitSelector    = $null
+                        DisplayTemplate = '{0}) {1}'
+                        Items           = $testItems
+                    }
+                    $testResult = Show-MenuHC @testParams
+                }
+                It 'all items are displayed in the menu' {
+                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe 
+
+                    foreach ($testCall in $testWriteHostCall) {
+                        Should -Invoke Write-Host -Times 1 -Exactly -Scope Describe -ParameterFilter {
+                            $Object -eq $testCall
+                        }
+                    }
+                }
+                It 'the selected value is returned' {
+                    $testResult | Should -HaveCount 1
+                    $testResult | Should -Be $testItems[0]
+                } 
+                It 'the returned value is not altered' {
+                    $testResult | Should -BeOfType $testItems[0].GetType()
+                }
+            }
+        } -Tag test
+        Context 'piped to the function and of type' {
+            Describe '<testName>' -Foreach $testCases {
+                BeforeAll {
+                    Mock Write-Host
+                    Mock Read-Host { '1' }
+            
+                    $testParams = @{ 
+                        QuitSelector    = $null
+                        DisplayTemplate = '{0}) {1}'
+                    }
+                    $testResult = $testItems | Show-MenuHC @testParams
+                }
+                It 'all items are displayed in the menu' {
+                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe 
+
+                    foreach ($testCall in $testWriteHostCall) {
+                        Should -Invoke Write-Host -Times 1 -Exactly -Scope Describe -ParameterFilter {
+                            $Object -eq $testCall
+                        }
+                    }
+                }
+                It 'the selected value is returned' {
+                    $testResult | Should -HaveCount 1
+                    $testResult | Should -Be $testItems[0]
+                } 
+                It 'the returned value is not altered' {
+                    $testResult | Should -BeOfType $testItems[0].GetType()
+                }
+            }
+        }
+    }
+}
