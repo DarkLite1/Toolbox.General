@@ -243,6 +243,8 @@ Describe 'Test-ParameterInPositionAndMandatoryHC' {
     }
 }
 Describe 'Show-MenuHC' {
+    InModuleScope -ModuleName $testModuleName {
+
     Context 'the mandatory parameters are' {
         It '<_>' -ForEach @( 'Items' ) {
             (Get-Command Show-MenuHC).Parameters[$_].Attributes.Mandatory | 
@@ -417,4 +419,5 @@ Describe 'Show-MenuHC' {
             }
         }
     }
+}
 }

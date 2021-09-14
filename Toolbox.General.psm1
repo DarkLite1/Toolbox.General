@@ -858,20 +858,16 @@ Function Test-IsAdminHC {
             Check if a user is local administrator.
 
         .DESCRIPTION
-            Check if a user is member of the local group 'Administrators' and returns
-            TRUE if he is, FALSE if not.
+            Check if a user is member of the local group 'Administrators' and 
+            return true if he is and false if not.
 
         .EXAMPLE
-            Test-IsAdminHC -SamAccountName SrvBatch
-            Returns TRUE in case SrvBatch is admin on this machine
+            Test-IsAdminHC -SamAccountName bob
+            Returns true in case bob is admin on this machine
 
         .EXAMPLE
             Test-IsAdminHC
-            Returns TRUE if the current user is admin on this machine
-
-        .NOTES
-            CHANGELOG
-            2017/05/29 Added parameter to check for a specific user
+            Returns true if the current user is admin on this machine
     #>
 
     Param (
