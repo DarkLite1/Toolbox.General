@@ -490,7 +490,7 @@ Function Get-DefaultParameterValuesHC {
         throw "Failed retrieving the default parameter values: $_"
     }
 }
-Function Get-TimeServer {
+Function Get-TimeServerHC {
     <#
     .SYNOPSIS
         Get the time server used on a specific computer
@@ -500,11 +500,11 @@ Function Get-TimeServer {
         The default is current computer.
 
     .EXAMPLE
-        Get-TimeServer
+        Get-TimeServerHC
         Get the time server on the current computer
         
     .EXAMPLE
-        Get-TimeServer -ComputerName 'PC1', 'PC2'
+        Get-TimeServerHC -ComputerName 'PC1', 'PC2'
         Get the time servers for PC1 and PC2
     #>
     [CmdletBinding()]
