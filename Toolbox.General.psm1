@@ -925,7 +925,7 @@ Function Show-MenuHC {
         Show a selection menu in the console
 
     .DESCRIPTION
-        Allow the user to select an option int he console and return the 
+        Allow the user to select an option in the console and return the 
         selected value afterwards. When the parameter `-QuitSelector` is used
         the user is also able to select nothing and just leave the menu with no
         return value.
