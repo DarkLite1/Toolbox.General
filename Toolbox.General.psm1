@@ -707,6 +707,34 @@ Function Merge-ObjectsHC {
     
     [psCustomObject]$hash
 }
+Function New-PSCodeHC {
+    <# 
+    .SYNOPSIS 
+        Generate a unique PSCode.
+ 
+    .DESCRIPTION 
+        Generate a unique PSCode starting by the country code, followed by the date and a random number.
+ 
+    .PARAMETER CountryCode 
+        The string used to identify a specific country or group of countries.
+        Example: BNL = BEL, FRA, LUX and NLD
+ 
+    .EXAMPLE 
+        New-PSCodeHC -CountryCode DEU
+        DEUPSCODE150729094858889906
+    #>
+
+    [CmdletBinding()] 
+    Param (
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)] 
+        [String]$CountryCode
+    )
+
+    $PSCode = $CountryCode + 'PSCODE' + (Get-Date -Format 'yyMMddHHmmssfff') + (Get-Random -Minimum 100 -Maximum 999)
+
+    Write-Verbose "New PSCode '$PSCode'"
+    $PSCode
+}
 Function Remove-EmptyParamsHC {
     <#
     .SYNOPSIS
