@@ -180,18 +180,18 @@ Function Format-JsonHC {
 
     $indent = 0;
     ($json -Split '\n' |
-        ForEach-Object {
-            if ($_ -match '[\}\]]') {
-                # This line contains  ] or }, decrement the indentation level
-                $indent--
-            }
-            $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
-            if ($_ -match '[\{\[]') {
-                # This line contains [ or {, increment the indentation level
-                $indent++
-            }
-            $line
-        }) -Join "`n"
+    ForEach-Object {
+        if ($_ -match '[\}\]]') {
+            # This line contains  ] or }, decrement the indentation level
+            $indent--
+        }
+        $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
+        if ($_ -match '[\{\[]') {
+            # This line contains [ or {, increment the indentation level
+            $indent++
+        }
+        $line
+    }) -Join "`n"
 }
 Function Get-ComputerAudioVolumeHC {
     <# 
@@ -373,9 +373,9 @@ Function Get-DefaultParameterValuesHC {
         Where-Object { 
             ($_.DefaultValue) -and
             (-not ($_.Attributes | 
-                    Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
-                    ForEach-Object -MemberName NamedArguments | 
-                    Where-Object { $_.ArgumentName -eq 'Mandatory' }))
+                Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
+                ForEach-Object -MemberName NamedArguments | 
+                Where-Object { $_.ArgumentName -eq 'Mandatory' }))
         } | 
         Select-Object @selectParams
                 
@@ -580,7 +580,11 @@ Function Remove-EmptyParamsHC {
     }
     Process {
         foreach ($h in $Name.Keys) {
-            if (($($Name.Item($h)) -eq $null) -or ($($Name.Item($h)) -eq '')) {
+            if (
+                ($($Name.Item($h)) -eq $null) -or 
+                ($($Name.Item($h)) -eq '') -or
+                ($($Name.Item($h)) -is [DBNull])
+            ) {
                 $null = $list.Add($h)
             }
         }
