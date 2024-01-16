@@ -1,4 +1,7 @@
-﻿Filter Remove-CommentsHC {
+﻿#Requires -Version 5.1
+using namespace System.Management.Automation
+
+Filter Remove-CommentsHC {
     <#
         .SYNOPSIS
             Filters out comments and full whitespace strings
@@ -65,14 +68,14 @@ Function Add-FunctionHC {
         Load the module of a function when it's not loaded yet.
 
     .DESCRIPTION
-        Load the module of a function, only when it's not loaded yet. This can 
-        be useful when a function needs to be known in the local session before 
+        Load the module of a function, only when it's not loaded yet. This can
+        be useful when a function needs to be known in the local session before
         it can be used in a remote session by 'Invoke-Command'.
 
     .EXAMPLE
         Add-FunctionHC -Name 'Copy-FilesHC'
 
-        Loads the module 'Toolbox.General' where the function 'Copy-FilesHC' is 
+        Loads the module 'Toolbox.General' where the function 'Copy-FilesHC' is
         available in. It does this only when the module has not been loaded yet.
 #>
 
@@ -98,7 +101,7 @@ Function Add-FunctionHC {
 Function ConvertTo-ArrayHC {
     <#
     .SYNOPSIS
-        Convert different types of collections (valueCollection, collection`1, 
+        Convert different types of collections (valueCollection, collection`1,
         ...) to an array.
 
     .DESCRIPTION
@@ -121,16 +124,15 @@ Function Copy-ObjectHC {
         Make a deep copy of an object.
 
     .DESCRIPTION
-        In PowerShell, when you copy an object (array, hashtable, ..), there's 
-        always a link with the original. So if you change a property in the new 
-        object it will also be changed in the original one. To avoid this from 
-        happening, a deep copy with .NET is required.
+        Use the serializer to create an independent copy of an object,
+        useful when using an object as a template
 
     .PARAMETER Name
-        Name of the object we need to copy.
+        The object to copy.
 
     .EXAMPLE
         The $NewArray object contains a full copy of the $OriginalArray
+
         $NewArray = Copy-ObjectHC -Original $OriginalArray
 
     .EXAMPLE
@@ -147,25 +149,19 @@ Function Copy-ObjectHC {
 
         Write-Host 'Original hash:' -ForegroundColor Yellow
         $OriginalHash
-#>
+    #>
 
     [CmdletBinding()]
     Param (
-        [parameter(Mandatory)]
+        [Parameter(Mandatory)]
         [Object]$Name
     )
 
-    Process {
-        # Serialize and Deserialize data using BinaryFormatter
-        $ms = New-Object System.IO.MemoryStream
-        $bf = New-Object System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-        $bf.Serialize($ms, $Name)
-        $ms.Position = 0
-
-        #Deep copied data
-        $bf.Deserialize($ms)
-        $ms.Close()
-    }
+    [PSSerializer]::Deserialize(
+        [PSSerializer]::Serialize(
+            $Name
+        )
+    )
 }
 Function Format-JsonHC {
     <#
@@ -194,8 +190,8 @@ Function Format-JsonHC {
     }) -Join "`n"
 }
 Function Get-ComputerAudioVolumeHC {
-    <# 
-    .SYNOPSIS   
+    <#
+    .SYNOPSIS
         Get the volume of the speakers on a computer.
 
     .DESCRIPTION
@@ -266,12 +262,12 @@ Function Get-ComputerAudioVolumeHC {
         }
     }
 '@
-    
+
         [PSCustomObject]@{
             Muted  = [audio]::Mute
             Volume = [int]([audio]::Volume * 100)
         }
-    } | 
+    } |
     Select-Object @{Name = 'ComputerName'; Expression = { $_.PSComputerName } },
     Muted, Volume
 }
@@ -319,7 +315,7 @@ Function Get-DefaultParameterValuesHC {
     Get the default values for parameters set in a script or function.
 
 .DESCRIPTION
-    A hash table is returned containing the name and the default value of the 
+    A hash table is returned containing the name and the default value of the
     parameters used in a script or function. When a parameter is mandatory but
     still has a default value this value will not be returned.
 
@@ -356,29 +352,29 @@ Function Get-DefaultParameterValuesHC {
         $ast = (Get-Command $Path).ScriptBlock.Ast
 
         $selectParams = @{
-            Property = @{ 
-                Name       = 'Name'; 
-                Expression = { $_.Name.VariablePath.UserPath } 
+            Property = @{
+                Name       = 'Name';
+                Expression = { $_.Name.VariablePath.UserPath }
             },
-            @{ 
-                Name       = 'Value'; 
+            @{
+                Name       = 'Value';
                 Expression = { $_.DefaultValue.Extent.Text }
             }
         }
 
         $defaultValueParameters = $ast.FindAll( {
-                $args[0] -is 
-                [System.Management.Automation.Language.ParameterAst] 
-            } , $true) | 
-        Where-Object { 
+                $args[0] -is
+                [System.Management.Automation.Language.ParameterAst]
+            } , $true) |
+        Where-Object {
             ($_.DefaultValue) -and
-            (-not ($_.Attributes | 
-                Where-Object { $_.TypeName.Name -eq 'Parameter' } | 
-                ForEach-Object -MemberName NamedArguments | 
+            (-not ($_.Attributes |
+                Where-Object { $_.TypeName.Name -eq 'Parameter' } |
+                ForEach-Object -MemberName NamedArguments |
                 Where-Object { $_.ArgumentName -eq 'Mandatory' }))
-        } | 
+        } |
         Select-Object @selectParams
-                
+
         $result = @{ }
 
         foreach ($d in $defaultValueParameters) {
@@ -404,7 +400,7 @@ Function Get-TimeServerHC {
     .EXAMPLE
         Get-TimeServerHC
         Get the time server on the current computer
-        
+
     .EXAMPLE
         Get-TimeServerHC -ComputerName 'PC1', 'PC2'
         Get the time servers for PC1 and PC2
@@ -413,10 +409,10 @@ Function Get-TimeServerHC {
     Param (
         [String[]]$ComputerName = $env:COMPUTERNAME
     )
-    
+
     process {
         $HKLM = 2147483650
-    
+
         foreach ($Computer in $ComputerName) {
             try {
                 $Output = [PSCustomObject]@{
@@ -427,7 +423,7 @@ Function Get-TimeServerHC {
                 }
                 $reg = [wmiClass]"\\$Computer\root\default:StdRegprov"
                 $key = 'SYSTEM\CurrentControlSet\Services\W32Time\Parameters'
-                    
+
                 $type = $reg.GetStringValue($HKLM, $key, 'Type')
                 $Output.Type = $Type.sValue
 
@@ -440,7 +436,7 @@ Function Get-TimeServerHC {
                     $Output.Description = 'Get time from the domain hierarchy'
                     $Output.TimeServer = w32tm /query /source
                 }
-                
+
                 $Output
             }
             catch {
@@ -455,7 +451,7 @@ Function Install-RemoteAppHC {
         Install software on a remote machine
 
     .DESCRIPTION
-        Install software on a remote machine and copy the install files from 
+        Install software on a remote machine and copy the install files from
         SCCM to the C:\Cabs folder
 #>
     [CmdletBinding()]
@@ -481,72 +477,72 @@ Function Merge-ObjectsHC {
     <#
     .SYNOPSIS
         Combine two objects into one.
- 
+
     .DESCRIPTION
-        Combine two objects into one. These can be custom PowerShell objects or 
+        Combine two objects into one. These can be custom PowerShell objects or
         other system objects
- 
+
     .EXAMPLE
         Combine objects allow you to combine two separate custom objects into one.
- 
+
         $Object1 = [PsCustomObject]@{firstName = 'Bob'; lastName = 'Lee Swagger'}
         $Object2 = [PsCustomObject]@{hobby = 'Shooting'; rank = 'Sergeant'}
-    
+
         Combine-Object -Object1 $Object1 -Object2 $Object2
-    
-        Name          Value                                                                                     
-        ----          ----                                                                    
+
+        Name          Value
+        ----          ----
         fistName      Bob
         lastName      Lee Swagger
         hobby         Shooting
         rank          Sergeant
-	
+
     .EXAMPLE
         Combining system objects
- 
+
         $User = Get-ADUser -identity vanGulick
         $Bios = Get-wmiObject -class win32_bios
-    
+
         Combine-Objects -Object1 $bios -Object2 $User
  #>
- 
+
     Param (
-        [Parameter(Mandatory)]$Object1, 
+        [Parameter(Mandatory)]$Object1,
         [Parameter(Mandatory)]$Object2
     )
-    
+
     $hash = [Ordered]@{ }
- 
+
     foreach ( $Property in $Object1.psObject.Properties) {
         $hash[$Property.Name] = $Property.value
     }
- 
+
     foreach ( $Property in $Object2.psObject.Properties) {
         $hash[$Property.Name] = $Property.value
     }
-    
+
     [psCustomObject]$hash
 }
 Function New-PSCodeHC {
-    <# 
-    .SYNOPSIS 
+    <#
+    .SYNOPSIS
         Generate a unique PSCode.
- 
-    .DESCRIPTION 
+
+    .DESCRIPTION
         Generate a unique PSCode starting by the country code, followed by the date and a random number.
- 
-    .PARAMETER CountryCode 
+
+    .PARAMETER CountryCode
         The string used to identify a specific country or group of countries.
         Example: BNL = BEL, FRA, LUX and NLD
- 
-    .EXAMPLE 
+
+    .EXAMPLE
         New-PSCodeHC -CountryCode DEU
         DEUPSCODE150729094858889906
     #>
 
-    [CmdletBinding()] 
+    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory, Position = 0, ValueFromPipeline)] 
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
         [String]$CountryCode
     )
 
@@ -561,14 +557,14 @@ Function Remove-EmptyParamsHC {
         Removes empty key/values pairs from a hashtable.
 
     .DESCRIPTION
-        Removes empty key/values pairs from a hashtable. This can be useful for 
+        Removes empty key/values pairs from a hashtable. This can be useful for
         functions that are used with splatting.
 
     .EXAMPLE
         Remove-EmptyParamsHC $CopyParams
-        
-        Removes all the pairs that are empty and corrects the original 
-        hashtable to only contain key/value pairs where their are values 
+
+        Removes all the pairs that are empty and corrects the original
+        hashtable to only contain key/value pairs where their are values
         available.
 #>
 
@@ -581,7 +577,7 @@ Function Remove-EmptyParamsHC {
     Process {
         foreach ($h in $Name.Keys) {
             if (
-                ($($Name.Item($h)) -eq $null) -or 
+                ($($Name.Item($h)) -eq $null) -or
                 ($($Name.Item($h)) -eq '') -or
                 ($($Name.Item($h)) -is [DBNull])
             ) {
@@ -596,22 +592,22 @@ Function Remove-EmptyParamsHC {
 Function Remove-InvalidFileNameCharsHC {
     <#
     .SYNOPSIS
-        Removes characters from a string that are not valid in Windows file 
+        Removes characters from a string that are not valid in Windows file
         names.
 
     .DESCRIPTION
-        Remove-InvalidFileNameCharsHC accepts a string and removes characters 
+        Remove-InvalidFileNameCharsHC accepts a string and removes characters
         that are invalid in Windows file names.
 
     .PARAMETER Name
         Specifies the file name to strip of invalid characters.
 
     .PARAMETER IncludeSpace
-        The IncludeSpace parameter will include the space character (U+0032) in 
+        The IncludeSpace parameter will include the space character (U+0032) in
         the removal process.
 
     .EXAMPLE
-        'Clôture Yess 06/2015 - afsluit Yess 06/2015 - Closure Yess 06/2015' | 
+        'Clôture Yess 06/2015 - afsluit Yess 06/2015 - Closure Yess 06/2015' |
         Remove-InvalidFileNameCharsHC
 
         Clôture Yess 062015 - afsluit Yess 062015 - Closure Yess 062015
@@ -638,8 +634,8 @@ Function Remove-PowerShellWildcardCharsHC {
         Removes PowerShell wildcard characters from a string
 
     .DESCRIPTION
-        Removes PowerShell wildcard characters from a string. This can be 
-        useful when wildcards are not accepted by other CmdLets like 
+        Removes PowerShell wildcard characters from a string. This can be
+        useful when wildcards are not accepted by other CmdLets like
         'Send-MailMessage -Attachment'.
 
     .PARAMETER Name
@@ -665,8 +661,8 @@ Function Remove-PowerShellWildcardCharsHC {
     }
 }
 Function Set-ComputerAudioVolumeHC {
-    <# 
-    .SYNOPSIS   
+    <#
+    .SYNOPSIS
         Control the volume of the speakers on a computer.
 
     .DESCRIPTION
@@ -688,7 +684,7 @@ Function Set-ComputerAudioVolumeHC {
         anything on the system, despite the volume level being set.
 
     .EXAMPLE
-        Set-ComputerAudioVolumeHC -ComputerName PC1 -Volume 20 -TextToSay 'hi there' 
+        Set-ComputerAudioVolumeHC -ComputerName PC1 -Volume 20 -TextToSay 'hi there'
 
         Set the audio volume to 20% on PC1 and say the text 'hi there'.
 
@@ -760,10 +756,10 @@ Function Set-ComputerAudioVolumeHC {
         }
     }
 '@
-    
+
         [audio]::Mute = $using:Mute
         [audio]::Volume = $using:Volume / 100
-    
+
         if ($using:TextToSay) {
             Add-Type -AssemblyName System.Speech
             $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
@@ -777,13 +773,13 @@ Function Show-MenuHC {
         Show a selection menu in the console
 
     .DESCRIPTION
-        Allow the user to select an option in the console and return the 
+        Allow the user to select an option in the console and return the
         selected value afterwards. When the parameter `-QuitSelector` is used
         the user is also able to select nothing and just leave the menu with no
         return value.
 
     .PARAMETER Items
-        The options to display in the selection menu. Can be any type like 
+        The options to display in the selection menu. Can be any type like
         string, hashtable, PSCustomObjects, ... .
 
     .PARAMETER Properties
@@ -808,8 +804,8 @@ Function Show-MenuHC {
         )
 
         $params = @{
-            Items           = $fruits 
-            QuitSelector    = $null 
+            Items           = $fruits
+            QuitSelector    = $null
             SelectionPrompt = 'Select a fruit you like:'
         }
         $myFavoriteFruit = Show-MenuHC @params
@@ -818,9 +814,9 @@ Function Show-MenuHC {
         2) @{Name=kiwi; Color=green; Shape=oval}
         3) @{Name=apples; Color=red; Shape=round}
         'Select a fruit you like:'
-        
-        Displays the menu where the user is forced to select one of the 3 
-        options. When selected the result is stored in the variable 
+
+        Displays the menu where the user is forced to select one of the 3
+        options. When selected the result is stored in the variable
         '$myFavoriteFruit'
 
     .EXAMPLE
@@ -837,10 +833,10 @@ Function Show-MenuHC {
         3) @{Name=apples}
         Q) Quit
         'Select an option:'
-        
-        Displays the menu with only the 'Name' property and not al other 
-        properties of the object. It will still return the complete 
-        object on selection. 
+
+        Displays the menu with only the 'Name' property and not al other
+        properties of the object. It will still return the complete
+        object on selection.
     #>
 
     [CmdLetBinding()]
@@ -867,7 +863,7 @@ Function Show-MenuHC {
                 throw 'The quit selector can hold only one key value pair'
             }
 
-            $quitSelectorKey = $quitSelector.GetEnumerator() | 
+            $quitSelectorKey = $quitSelector.GetEnumerator() |
             Select-Object -ExpandProperty Key
 
             if ($quitSelectorKey -isNot [String]) {
@@ -891,7 +887,7 @@ Function Show-MenuHC {
                 $valueToDisplay = $item.Value
 
                 if ($item.Value -is [HashTable]) {
-                    $valueToDisplay = [PSCustomObject]$item.Value 
+                    $valueToDisplay = [PSCustomObject]$item.Value
                 }
 
                 if (($valueToDisplay -is [String]) -and ($Properties)) {
@@ -900,12 +896,12 @@ Function Show-MenuHC {
                 }
 
                 if ($Properties) {
-                    $valueToDisplay = $valueToDisplay | 
+                    $valueToDisplay = $valueToDisplay |
                     Select-Object -Property $Properties
                 }
-            
+
                 $params = @{
-                    Object          = $DisplayTemplate -f 
+                    Object          = $DisplayTemplate -f
                     $item.key, "$($valueToDisplay)"
                     ForegroundColor = 'yellow'
                 }
@@ -914,7 +910,7 @@ Function Show-MenuHC {
 
             if ($QuitSelector) {
                 $params = @{
-                    Object          = $DisplayTemplate -f 
+                    Object          = $DisplayTemplate -f
                     $quitSelectorKey, "$($QuitSelector.Values[0])"
                     ForegroundColor = 'DarkGray'
                 }
@@ -923,7 +919,7 @@ Function Show-MenuHC {
 
             $selected = Read-Host -Prompt $SelectionPrompt
         } until (
-            ($hash.Keys -contains $selected) -or 
+            ($hash.Keys -contains $selected) -or
             ($selected -eq $quitSelectorKey)
         )
         #endregion
@@ -956,7 +952,7 @@ Function Test-IsAdminHC {
             Check if a user is local administrator.
 
         .DESCRIPTION
-            Check if a user is member of the local group 'Administrators' and 
+            Check if a user is member of the local group 'Administrators' and
             return true if he is and false if not.
 
         .EXAMPLE
@@ -991,7 +987,7 @@ Function Test-ParameterInPositionAndMandatoryHC {
     .DESCRIPTION
         Test for parameters in a specific position that are mandatory. When the
         parameter is not in that position, the name is incorrect or it's not
-        mandatory, the incorrect parameter's name is generated as output. In 
+        mandatory, the incorrect parameter's name is generated as output. In
         case all parameters are correct, no output is generated.
 
     .PARAMETER Collection
@@ -1001,8 +997,8 @@ Function Test-ParameterInPositionAndMandatoryHC {
         The desired position and parameter name.
 
     .EXAMPLE
-        Check if parameter 'ScriptName' is in the first position and if 
-        parameter 'Number' is in the second position. They also need to be 
+        Check if parameter 'ScriptName' is in the first position and if
+        parameter 'Number' is in the second position. They also need to be
         'Mandatory'.
 
         "Param (
@@ -1077,18 +1073,18 @@ Function Test-ParameterInPositionAndMandatoryHC {
 Function Use-CultureHC {
     <#
     .SYNOPSIS
-        Run PowerShell code in another culture 
+        Run PowerShell code in another culture
 
     .DESCRIPTION
-        This function allows us to run PowerShell code in another culture 
+        This function allows us to run PowerShell code in another culture
         (regional settings).
 
     .PARAMETER Culture
-        The culture ID you want to use: 
+        The culture ID you want to use:
         en-US (English), de-DE (German), nl-BE (Belgium), ..
 
     .PARAMETER Code
-        PowerShell code, like a script block, that you want to run using the 
+        PowerShell code, like a script block, that you want to run using the
         specified culture.
 
     .EXAMPLE

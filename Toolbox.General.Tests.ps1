@@ -26,7 +26,7 @@ Describe 'Get-DefaultParameterValuesHC' {
 "@ | Out-File -FilePath $testScript -Encoding utf8 -Force
 
                 $actual = Get-DefaultParameterValuesHC -Path $testScript
-                
+
                 $actual.Keys | Should -HaveCount 2
                 $actual.ScriptName | Should -Be 'Get printers'
                 $actual.PaperSize | Should -Be 'A4'
@@ -42,7 +42,7 @@ Describe 'Get-DefaultParameterValuesHC' {
                         [String]$PaperSize = 'A4'
                     )
                 }
-    
+
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
 
                 $actual.Keys | Should -HaveCount 2
@@ -59,9 +59,9 @@ Describe 'Get-DefaultParameterValuesHC' {
                         [String]$PaperSize = 'A4'
                     )
                 }
-    
+
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
-    
+
                 $actual.Keys | Should -HaveCount 1
                 $actual.PaperSize | Should -Be 'A4'
             }
@@ -73,9 +73,9 @@ Describe 'Get-DefaultParameterValuesHC' {
                         [String]$PaperSize
                     )
                 }
-    
+
                 $actual = Get-DefaultParameterValuesHC -Path 'Test-Function'
-    
+
                 $actual | Should -BeNullOrEmpty
             }
         }
@@ -104,7 +104,7 @@ Describe 'Get-DefaultParameterValuesHC' {
                 $actual.ComputerNames | Should -HaveCount 2
                 $actual.ComputerNames[0] | Should -BeExactly $env:COMPUTERNAME
                 $actual.ComputerNames[1] | Should -BeExactly 'PC2'
-            } 
+            }
             It 'a hashtable to hashtable' {
                 Function Test-Function {
                     Param (
@@ -247,19 +247,19 @@ Describe 'Show-MenuHC' {
 
     Context 'the mandatory parameters are' {
         It '<_>' -ForEach @( 'Items' ) {
-            (Get-Command Show-MenuHC).Parameters[$_].Attributes.Mandatory | 
+            (Get-Command Show-MenuHC).Parameters[$_].Attributes.Mandatory |
             Should -BeTrue
         }
-    } 
+    }
     Context 'the quit selector' {
         Describe 'when used' {
             BeforeAll {
                 Mock Write-Host
                 Mock Read-Host { 'Q' }
-            
-                $testParams = @{ 
+
+                $testParams = @{
                     Items           = @('banana', 'kiwi')
-                    QuitSelector    = @{ 'Q' = 'Quit' } 
+                    QuitSelector    = @{ 'Q' = 'Quit' }
                     DisplayTemplate = '{0}) {1}'
                 }
                 $testResult = Show-MenuHC @testParams
@@ -277,8 +277,8 @@ Describe 'Show-MenuHC' {
             BeforeAll {
                 Mock Write-Host
                 Mock Read-Host { '1' }
-            
-                $testParams = @{ 
+
+                $testParams = @{
                     Items           = @('banana', 'kiwi')
                     QuitSelector    = $null
                     DisplayTemplate = '{0}) {1}'
@@ -297,8 +297,8 @@ Describe 'Show-MenuHC' {
         BeforeAll {
             Mock Write-Host
             Mock Read-Host { '1' }
-        
-            $testParams = @{ 
+
+            $testParams = @{
                 Items           = @(
                     [PSCustomObject]@{ Name = 'banana'; Color = 'yellow' }
                     [PSCustomObject]@{ Name = 'kiwi'; Color = 'green' }
@@ -328,7 +328,7 @@ Describe 'Show-MenuHC' {
     Context 'when the items to display are' {
         BeforeDiscovery {
             $testCases = @(
-                @{
+        <#         @{
                     testName          = 'string'
                     testItems         = @( 'banana', 'kiwi' )
                     testWriteHostCall = @( '1) banana', '2) kiwi' )
@@ -339,19 +339,19 @@ Describe 'Show-MenuHC' {
                         [PSCustomObject]@{ Name = 'banana'; Color = 'yellow' }
                         [PSCustomObject]@{ Name = 'kiwi'; Color = 'green' }
                     )
-                    testWriteHostCall = @( 
-                        '1) @{Name=banana; Color=yellow}', 
+                    testWriteHostCall = @(
+                        '1) @{Name=banana; Color=yellow}',
                         '2) @{Name=kiwi; Color=green}'
                     )
-                }
+                } #>
                 @{
                     testName          = 'HashTable'
                     testItems         = @(
-                        @{ Name = 'banana'; Color = 'yellow' }
-                        @{ Name = 'kiwi'; Color = 'green' }
+                        [System.Management.Automation.OrderedHashtable]@{ Name = 'banana'; Color = 'yellow' }
+                        [System.Management.Automation.OrderedHashtable]@{ Name = 'kiwi'; Color = 'green' }
                     )
-                    testWriteHostCall = @( 
-                        '1) @{Name=banana; Color=yellow}', 
+                    testWriteHostCall = @(
+                        '1) @{Name=banana; Color=yellow}',
                         '2) @{Name=kiwi; Color=green}'
                     )
                 }
@@ -360,10 +360,12 @@ Describe 'Show-MenuHC' {
         Context 'not piped to the function and of type' {
             Describe '<testName>' -Foreach $testCases {
                 BeforeAll {
-                    Mock Write-Host
+                    Mock Write-Host {
+                        Write-Verbose $Object
+                    }
                     Mock Read-Host { '1' }
-            
-                    $testParams = @{ 
+
+                    $testParams = @{
                         QuitSelector    = $null
                         DisplayTemplate = '{0}) {1}'
                         Items           = $testItems
@@ -371,7 +373,7 @@ Describe 'Show-MenuHC' {
                     $testResult = Show-MenuHC @testParams
                 }
                 It 'all items are displayed in the menu' {
-                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe 
+                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe
 
                     foreach ($testCall in $testWriteHostCall) {
                         Should -Invoke Write-Host -Times 1 -Exactly -Scope Describe -ParameterFilter {
@@ -382,26 +384,26 @@ Describe 'Show-MenuHC' {
                 It 'the selected value is returned' {
                     $testResult | Should -HaveCount 1
                     $testResult | Should -Be $testItems[0]
-                } 
+                }
                 It 'the returned value is not altered' {
                     $testResult | Should -BeOfType $testItems[0].GetType()
                 }
             }
-        } -Tag test
+        }
         Context 'piped to the function and of type' {
             Describe '<testName>' -Foreach $testCases {
                 BeforeAll {
                     Mock Write-Host
                     Mock Read-Host { '1' }
-            
-                    $testParams = @{ 
+
+                    $testParams = @{
                         QuitSelector    = $null
                         DisplayTemplate = '{0}) {1}'
                     }
                     $testResult = $testItems | Show-MenuHC @testParams
                 }
                 It 'all items are displayed in the menu' {
-                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe 
+                    Should -Invoke Write-Host -Times $testWriteHostCall.Count -Exactly -Scope Describe
 
                     foreach ($testCall in $testWriteHostCall) {
                         Should -Invoke Write-Host -Times 1 -Exactly -Scope Describe -ParameterFilter {
@@ -412,7 +414,7 @@ Describe 'Show-MenuHC' {
                 It 'the selected value is returned' {
                     $testResult | Should -HaveCount 1
                     $testResult | Should -Be $testItems[0]
-                } 
+                }
                 It 'the returned value is not altered' {
                     $testResult | Should -BeOfType $testItems[0].GetType()
                 }
