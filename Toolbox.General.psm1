@@ -37,26 +37,6 @@ Function Add-FunctionHC {
         }
     }
 }
-Function ConvertTo-ArrayHC {
-    <#
-    .SYNOPSIS
-        Convert different types of collections (valueCollection, collection`1,
-        ...) to an array.
-
-    .DESCRIPTION
-        This function is convenient for Pester testing.
-s#>
-
-    Begin {
-        $output = @();
-    }
-    Process {
-        $output += $_;
-    }
-    End {
-        return , $output;
-    }
-}
 Function Copy-ObjectHC {
     <#
     .SYNOPSIS
