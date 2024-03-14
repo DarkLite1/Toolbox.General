@@ -1,42 +1,6 @@
 ﻿#Requires -Version 5.1
 using namespace System.Management.Automation
 
-Function Add-FunctionHC {
-    <#
-    .SYNOPSIS
-        Load the module of a function when it's not loaded yet.
-
-    .DESCRIPTION
-        Load the module of a function, only when it's not loaded yet. This can
-        be useful when a function needs to be known in the local session before
-        it can be used in a remote session by 'Invoke-Command'.
-
-    .EXAMPLE
-        Add-FunctionHC -Name 'Copy-FilesHC'
-
-        Loads the module 'Toolbox.General' where the function 'Copy-FilesHC' is
-        available in. It does this only when the module has not been loaded yet.
-#>
-
-    [CmdletBinding()]
-    Param(
-        [String]$Name
-    )
-    Process {
-        Try {
-            $Module = (Get-Command $Name -EA Stop).ModuleName
-        }
-        Catch {
-            Write-Error "Add-FunctionHC: Function '$Name' doesn't exist in any module"
-            $Global:Error.RemoveAt('1')
-            Break
-        }
-
-        if (-not (Get-Module -Name $Module)) {
-            Import-Module -Name $Module
-        }
-    }
-}
 Function Copy-ObjectHC {
     <#
     .SYNOPSIS
