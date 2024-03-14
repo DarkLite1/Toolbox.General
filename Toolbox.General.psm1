@@ -1,67 +1,6 @@
 ﻿#Requires -Version 5.1
 using namespace System.Management.Automation
 
-Filter Remove-CommentsHC {
-    <#
-        .SYNOPSIS
-            Filters out comments and full whitespace strings
-
-        .DESCRIPTION
-            Filters out comments and full whitespace strings from arrays. In case a string
-            starts with '#', ' #' or '     #' it is considered to be a comment and the string
-            will not be returned.
-
-            In case a string is completely blank '    ', it will also not be returned.
-
-        .EXAMPLE
-            $ImportFile = $env:TEMP + '\test.txt'
-
-@"
-MailTo: bob@contoso.com
-
-# Other stuff
-
-  # Other stuff
- # Other stuff
-    # Other stuff
-# Other stuff
-        # Other stuff
-        No # comment
-GITOU: OU=GIT,DC=contoso,DC=net
-QuotaGroupName: BEL ATT Quota home
-NoOCSGroupName: BEL ATT User No OCS
-InactiveDays: 40
-# OU=BEL,OU=EU,DC=contoso,DC=net
-OU=BEL,OU=EU,DC=contoso,DC=net
-
-
-
-   ###
-   # #
-   # d#
-   #
-   My stuff # that is ok
-# Comment
-"@ | Out-File $ImportFile
-
-
-Get-Content $ImportFile
-
-            The result will be:
-            MailTo: bob@contoso.com
-            No # comment
-            GITOU: OU=GIT,DC=contoso,DC=net
-            QuotaGroupName: BEL ATT Quota home
-            NoOCSGroupName: BEL ATT User No OCS
-            InactiveDays: 40
-            OU=BEL,OU=EU,DC=contoso,DC=net
-            My stuff # that is ok
-#>
-
-    if ($_ -notMatch '^\s*#|^\s*$') {
-        $_.Trim()
-    }
-}
 Function Add-FunctionHC {
     <#
     .SYNOPSIS
