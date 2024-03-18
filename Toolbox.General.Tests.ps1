@@ -119,26 +119,6 @@ Describe 'Get-DefaultParameterValuesHC' {
         }
     }
 }
-Describe 'Remove-PowerShellWildcardCharsHC' {
-    It "Remove character '['" {
-        'Kiwi[And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
-    }
-    It "Remove character ']'" {
-        'Kiwi]And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
-    }
-    It "Remove character '['" {
-        'Kiwi*And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
-    }
-    It "Remove character '['" {
-        'Kiwi?And Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
-    }
-    It "Remove character '[ ] ? *'" {
-        'Kiwi?And *?Apples[0]' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples0'
-    }
-    It "Remove nothing" {
-        'KiwiAnd Apples' | Remove-PowerShellWildcardCharsHC | Should -BeExactly 'KiwiAnd Apples'
-    }
-}
 Describe 'Show-MenuHC' {
     InModuleScope -ModuleName $testModuleName {
         Context 'the mandatory parameters are' {

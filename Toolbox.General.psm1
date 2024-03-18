@@ -461,38 +461,6 @@ Function Remove-InvalidFileNameCharsHC {
         }
     }
 }
-Function Remove-PowerShellWildcardCharsHC {
-    <#
-    .SYNOPSIS
-        Removes PowerShell wildcard characters from a string
-
-    .DESCRIPTION
-        Removes PowerShell wildcard characters from a string. This can be
-        useful when wildcards are not accepted by other CmdLets like
-        'Send-MailMessage -Attachment'.
-
-    .PARAMETER Name
-        Specifies the string where the wildcard characters will be removed from.
-
-    .EXAMPLE
-        'My file[0].txt' | Remove-PowerShellWildcardCharsHC
-        Removes the brackets '[]' from the string to end up with 'My file0.txt'
-#>
-
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [String]$Name
-    )
-
-    Process {
-        $Name = $Name -replace '\['
-        $Name = $Name -replace '\]'
-        $Name = $Name -replace '\*'
-        $Name = $Name -replace '\?'
-        $Name
-    }
-}
 Function Set-ComputerAudioVolumeHC {
     <#
     .SYNOPSIS
