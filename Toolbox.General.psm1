@@ -271,63 +271,6 @@ Function Get-DefaultParameterValuesHC {
         throw "Failed retrieving the default parameter values: $_"
     }
 }
-Function Get-TimeServerHC {
-    <#
-    .SYNOPSIS
-        Get the time server used on a specific computer
-
-    .DESCRIPTION
-        Get the time server used on a specific computer.
-        The default is current computer.
-
-    .EXAMPLE
-        Get-TimeServerHC
-        Get the time server on the current computer
-
-    .EXAMPLE
-        Get-TimeServerHC -ComputerName 'PC1', 'PC2'
-        Get the time servers for PC1 and PC2
-    #>
-    [CmdletBinding()]
-    Param (
-        [String[]]$ComputerName = $env:COMPUTERNAME
-    )
-
-    process {
-        $HKLM = 2147483650
-
-        foreach ($Computer in $ComputerName) {
-            try {
-                $Output = [PSCustomObject]@{
-                    ComputerName = $Computer
-                    TimeServer   = $null
-                    Type         = $null
-                    Description  = $null
-                }
-                $reg = [wmiClass]"\\$Computer\root\default:StdRegprov"
-                $key = 'SYSTEM\CurrentControlSet\Services\W32Time\Parameters'
-
-                $type = $reg.GetStringValue($HKLM, $key, 'Type')
-                $Output.Type = $Type.sValue
-
-                if ($Output.Type -eq 'NTP') {
-                    $Output.Description = 'Get time from configured NTP source'
-                    $server = $reg.GetStringValue($HKLM, $key, 'NtpServer')
-                    $Output.TimeServer = ($server.sValue -split ',')[0]
-                }
-                else {
-                    $Output.Description = 'Get time from the domain hierarchy'
-                    $Output.TimeServer = w32tm /query /source
-                }
-
-                $Output
-            }
-            catch {
-                Write-Error "Failed to get NTP server from computer '$Computer': $_"
-            }
-        }
-    }
-}
 Function Install-RemoteAppHC {
     <#
     .SYNOPSIS
