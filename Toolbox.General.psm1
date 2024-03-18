@@ -737,19 +737,6 @@ Function Show-MenuHC {
         #endregion
     }
 }
-Function Test-ErrorHandlingInModuleHC {
-    Try {
-        throw 'My custom error'
-    }
-    Catch {
-        $Global:Error.RemoveAt(0)
-        throw "Failure reported: $_"
-
-    }
-    Finally {
-        'do this always'
-    }
-}
 Function Test-IsAdminHC {
     <#
         .SYNOPSIS
