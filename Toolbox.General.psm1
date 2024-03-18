@@ -719,7 +719,10 @@ Function Show-MenuHC {
             foreach ($item in $hash.getEnumerator()) {
                 $valueToDisplay = $item.Value
 
-                if ($item.Value -is [HashTable]) {
+                if (
+                    ($item.Value -is [HashTable]) -or
+                    ($item.Value -is [System.Collections.Specialized.OrderedDictionary])
+                ) {
                     $valueToDisplay = [PSCustomObject]$item.Value
                 }
 
