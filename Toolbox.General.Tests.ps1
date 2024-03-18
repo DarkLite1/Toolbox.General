@@ -266,7 +266,7 @@ Describe 'Show-MenuHC' {
                                 $Object -eq $testCall
                             }
                         }
-                    } -Tag test
+                    }
                     It 'the selected value is returned' {
                         $testResult | Should -HaveCount 1
                         $testResult | Should -Be $testItems[0]
